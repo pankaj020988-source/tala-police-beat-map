@@ -1,24 +1,30 @@
-import os
+import streamlit as st
 from PIL import Image, ImageDraw, ImageFont
 
-def create_tala_beat_map():
-    # 1. Canvas Setup (Standard Flex/Banner Ratio)
+# Streamlit Page Config
+st.set_page_config(page_title="Tala Police Beat Map", layout="wide")
+
+st.title("🛡️ Raigad Police - Tala Police Station Beat Map")
+st.write("Generate and download the official Tala Taluka Beat Map with village and officer directory.")
+
+@st.cache_data
+def generate_beat_map():
+    # 1. Canvas Setup
     width, height = 2400, 1400
-    background_color = (245, 240, 230) # Classic cream/light professional background
+    background_color = (245, 240, 230)
     
-    # Create base image
     img = Image.new("RGB", (width, height), color=background_color)
     draw = ImageDraw.Draw(img)
     
-    # 2. Header Section (Dark Blue Police Theme)
+    # 2. Header Section
     draw.rectangle([0, 0, width, 160], fill=(20, 35, 80))
     
-    # Fonts (Using default high-res or system path if available)
+    # Font Fallback handling for cloud environment
     try:
-        font_title = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 55)
-        font_subtitle = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 32)
-        font_header = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 36)
-        font_body = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 26)
+        font_title = ImageFont.truetype("DejaVuSans-Bold.ttf", 55)
+        font_subtitle = ImageFont.truetype("DejaVuSans.ttf", 32)
+        font_header = ImageFont.truetype("DejaVuSans-Bold.ttf", 36)
+        font_body = ImageFont.truetype("DejaVuSans.ttf", 26)
     except:
         font_title = font_subtitle = font_header = font_body = ImageFont.load_default()
 
@@ -52,7 +58,7 @@ def create_tala_beat_map():
     )
     draw.text((75, 310), left_text, fill=(30, 30, 30), font=font_body)
 
-    # 4. Right Panel: Officer Contact Directory (No Hidden Numbers)
+    # 4. Right Panel: Officer Contact Directory
     draw.rectangle([1700, 200, 2350, 1250], fill=(255, 255, 255), outline=(20, 35, 80), width=4)
     draw.rectangle([1700, 200, 2350, 280], fill=(20, 35, 80))
     draw.text((2025, 240), "OFFICER CONTACT DIRECTORY", fill=(255, 255, 255), anchor="mm", font=font_header)
@@ -81,7 +87,7 @@ def create_tala_beat_map():
     )
     draw.text((1725, 310), right_text, fill=(30, 30, 30), font=font_body)
 
-    # 5. Center Map Placeholder Box (Where Map Graphic sits)
+    # 5. Center Map Placeholder Box
     draw.rectangle([750, 200, 1650, 1150], fill=(235, 245, 255), outline=(100, 150, 200), width=3)
     draw.text((1200, 650), "[ TALA TALUKA BEAT MAP GRAPHIC ]\n(Mahagaon, Talegaon, Rahatad, Mandad)", fill=(50, 80, 120), anchor="mm", font=font_header)
 
@@ -89,10 +95,23 @@ def create_tala_beat_map():
     draw.rectangle([750, 1180, 1650, 1250], fill=(20, 35, 80))
     draw.text((1200, 1215), "TALA POLICE STATION | PHONE: 02140-269033 | EMERGENCY: 112", fill=(255, 255, 255), anchor="mm", font=font_header)
 
-    # Save output
-    output_path = "tala_police_beat_map.png"
-    img.save(output_path)
-    print(f"Map successfully generated and saved to {output_path}")
+    return img
 
-if __name__ == "__main__":
-    create_tala_beat_map()
+# Generate Image
+map_image = generate_beat_map()
+
+# Display on Streamlit App
+st.image(map_image, caption="Tala Police Station Beat Map", use_container_width=True)
+
+# Add Download Button
+import io
+buf = io.BytesIO()
+map_image.save(buf, format="PNG")
+byte_im = buf.getvalue()
+
+st.download_button(
+    label="📥 Download Beat Map Image",
+    data=byte_im,
+    file_name="tala_police_beat_map.png",
+    mime="image/png"
+)

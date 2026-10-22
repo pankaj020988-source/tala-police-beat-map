@@ -1,11 +1,12 @@
 import streamlit as st
 from PIL import Image, ImageDraw, ImageFont
+import io
 
 # Streamlit Page Config
 st.set_page_config(page_title="Tala Police Beat Map", layout="wide")
 
 st.title("🛡️ Raigad Police - Tala Police Station Beat Map")
-st.write("Generate and download the official Tala Taluka Beat Map with village and officer directory.")
+st.write("Official Tala Taluka Beat Map with village list and officer directory.")
 
 @st.cache_data
 def generate_beat_map():
@@ -19,23 +20,17 @@ def generate_beat_map():
     # 2. Header Section
     draw.rectangle([0, 0, width, 160], fill=(20, 35, 80))
     
-    # Font Fallback handling for cloud environment
-    try:
-        font_title = ImageFont.truetype("DejaVuSans-Bold.ttf", 55)
-        font_subtitle = ImageFont.truetype("DejaVuSans.ttf", 32)
-        font_header = ImageFont.truetype("DejaVuSans-Bold.ttf", 36)
-        font_body = ImageFont.truetype("DejaVuSans.ttf", 26)
-    except:
-        font_title = font_subtitle = font_header = font_body = ImageFont.load_default()
+    # Safe Fallback to Default Font to prevent cloud deployment crashes
+    font = ImageFont.load_default()
 
-    # Header Titles
-    draw.text((width // 2, 40), "RAIGAD POLICE | TALA POLICE STATION", fill=(255, 255, 255), anchor="mm", font=font_title)
-    draw.text((width // 2, 110), "TAL. TALA, DIST. RAIGAD — POLICE BEAT MAP (BEAT 1-4)", fill=(220, 220, 220), anchor="mm", font=font_subtitle)
+    # Header Titles (Using standard draw.text without complex truetype paths)
+    draw.text((width // 2 - 350, 40), "RAIGAD POLICE | TALA POLICE STATION", fill=(255, 255, 255), font=font)
+    draw.text((width // 2 - 400, 110), "TAL. TALA, DIST. RAIGAD — POLICE BEAT MAP (BEAT 1-4)", fill=(220, 220, 220), font=font)
 
     # 3. Left Panel: Village & Beat Classification
     draw.rectangle([50, 200, 700, 1250], fill=(255, 255, 255), outline=(20, 35, 80), width=4)
     draw.rectangle([50, 200, 700, 280], fill=(20, 35, 80))
-    draw.text((375, 240), "VILLAGE AND BEAT CLASSIFICATION", fill=(255, 255, 255), anchor="mm", font=font_header)
+    draw.text((120, 230), "VILLAGE AND BEAT CLASSIFICATION", fill=(255, 255, 255), font=font)
 
     left_text = (
         "BEAT 1 - MAHAGAON:\n"
@@ -56,12 +51,12 @@ def generate_beat_map():
         "  Padvan, Girane, Tarane, Vave Haveli\n"
         "• Tokarde, Raneci Wadi, Ambivoli, Jogwadi"
     )
-    draw.text((75, 310), left_text, fill=(30, 30, 30), font=font_body)
+    draw.text((80, 320), left_text, fill=(30, 30, 30), font=font)
 
     # 4. Right Panel: Officer Contact Directory
     draw.rectangle([1700, 200, 2350, 1250], fill=(255, 255, 255), outline=(20, 35, 80), width=4)
     draw.rectangle([1700, 200, 2350, 280], fill=(20, 35, 80))
-    draw.text((2025, 240), "OFFICER CONTACT DIRECTORY", fill=(255, 255, 255), anchor="mm", font=font_header)
+    draw.text((1780, 230), "OFFICER CONTACT DIRECTORY", fill=(255, 255, 255), font=font)
 
     right_text = (
         "BEAT 1 (MAHAGAON):\n"
@@ -78,22 +73,22 @@ def generate_beat_map():
         "• P.S.I. Shri. Bansode : 9764823920\n"
         "• P.S.I. S. G. Gaikwad : 8237531896\n"
         "• P.H.C. Milind Khirit : 7261941644\n"
-        "• W.P.C. Rutuja Borade : 7498823826\n\n"
+        "• W.P.C. Rutuja Borade : 7261941644\n\n"
         "BEAT 4 (MANDAD):\n"
         "• P.N. Gurunath Banmande : 9764823920\n"
         "• P.H.C. Ramhari Waghmare : 8237531896\n"
         "• M.P.H.C. Aarti Pawar : 7261941644\n"
         "• M.P.C. Pooja Gawade : 7498823826"
     )
-    draw.text((1725, 310), right_text, fill=(30, 30, 30), font=font_body)
+    draw.text((1730, 320), right_text, fill=(30, 30, 30), font=font)
 
     # 5. Center Map Placeholder Box
     draw.rectangle([750, 200, 1650, 1150], fill=(235, 245, 255), outline=(100, 150, 200), width=3)
-    draw.text((1200, 650), "[ TALA TALUKA BEAT MAP GRAPHIC ]\n(Mahagaon, Talegaon, Rahatad, Mandad)", fill=(50, 80, 120), anchor="mm", font=font_header)
+    draw.text((950, 650), "[ TALA TALUKA BEAT MAP GRAPHIC ]\n(Mahagaon, Talegaon, Rahatad, Mandad)", fill=(50, 80, 120), font=font)
 
     # 6. Footer / Station Helpdesk
     draw.rectangle([750, 1180, 1650, 1250], fill=(20, 35, 80))
-    draw.text((1200, 1215), "TALA POLICE STATION | PHONE: 02140-269033 | EMERGENCY: 112", fill=(255, 255, 255), anchor="mm", font=font_header)
+    draw.text((850, 1205), "TALA POLICE STATION | PHONE: 02140-269033 | EMERGENCY: 112", fill=(255, 255, 255), font=font)
 
     return img
 
@@ -104,7 +99,6 @@ map_image = generate_beat_map()
 st.image(map_image, caption="Tala Police Station Beat Map", use_container_width=True)
 
 # Add Download Button
-import io
 buf = io.BytesIO()
 map_image.save(buf, format="PNG")
 byte_im = buf.getvalue()
